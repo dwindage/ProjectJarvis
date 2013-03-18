@@ -2,13 +2,12 @@ import sys
 import urllib
 import uuid
 
-CONNECTION_PATH = 'http://www.youtube.com'
-INFO_PATH = '/get_video_info?el=popout&amp;video_id='
+CONNECTION_PATH = 'http://videofarm.daum.net'
+INFO_PATH = '/controller/api/open/v1_2/MovieLocation.apixml?play_loc=tvpot&profile=HIGH&vid='
 
-class Youtube:
-    # url : http://www.youtube.com/watch?v=mV6cvBorTfg
-    # url : http://youtu.be/mV6cvBorTfg
-    # url : mV6cvBorTfg
+class Tvpot:
+    # url : http://tvpot.daum.net/v/v829dp9tL9w11tLfwWwmWyo
+    # url : v829dp9tL9w11tLfwWwmWyo
     def __init__(self, url):
 	self.url = url
 	self.videoId = self.__parseUrl__(url)
@@ -22,7 +21,7 @@ class Youtube:
 	info = self.__downloadPage__(CONNECTION_PATH, infoPath);
 
 	# get video URL
-	self.videoInfoList = self.__parseYoutubeInfo__(info)
+	self.videoInfoList = self.__parseTvpotInfo__(info)
 	return self.videoInfoList
 
     def getDownloadUrl(self, index=-1):
@@ -72,6 +71,12 @@ class Youtube:
 		resultDict[key] = urllib.unquote(value)
 	return resultDict
 
+    def __parseFunction__(self, stringData):
+	result = ''
+	if '?' in stringData:
+	    stringData = stringData.split('?')[0]
+	return stringData.split('/')[-1]
+
     def __parseUrl__(self, url):
 	dic = self.__parseArguments__(url);
 	vid = ''
@@ -83,15 +88,13 @@ class Youtube:
 	    vid = url.split('/')[-1]
 	return vid
 
-    def __parseYoutubeInfo__(self, infoData):
+    def __parseTvpotInfo__(self, infoData):
 	resultList = []
 	try:
-	    stream_map = self.__parseArguments__(infoData)['url_encoded_fmt_stream_map']
-	    list_of_stream = stream_map.split(',')
-
-	    for stream in list_of_stream:
-		tempDict = self.__parseArguments__(stream)
-		resultList.append(tempDict)
+	    if '<url>' in infoData and '</url>' in infoData:
+		url = infoData.split('<url><![CDATA[')[-1].split(']]></url>')[0]
+		filename = self.__parseFunction__(url).split('.')[-1]
+		resultList.append({'url':url, 'type':filename})
 	except:
 	    resultList = []
 	return resultList
@@ -107,8 +110,7 @@ class Youtube:
 
     def __makeVideoPath__(self, videoInfo):
 	video = videoInfo
-        videoUrl = video['url'] + '&signature=' + video['sig']
-        videoUrl += '&title=file';
+        videoUrl = video['url']
 	return videoUrl
 
     def __getExetentionType_(typeString):
@@ -125,31 +127,16 @@ class Youtube:
 
 
 if __name__ == '__main__':
-    youtube = Youtube('http://www.youtube.com/watch?v=mV6cvBorTfg')
-    print youtube.getVideoId()
-    print youtube.getVideoType()[0]['quality']
-    print youtube.getDownloadUrl()
-    data = youtube.downloadVideo()
-    fp = open(youtube.getVideoId() + ".1.flv", 'w')
+    tvpot = Tvpot('http://tvpot.daum.net/v/v829dp9tL9w11tLfwWwmWyo')
+    print tvpot.getVideoId()
+    print tvpot.getDownloadUrl()
+    data = tvpot.downloadVideo()
+    fp = open(tvpot.getVideoId() + ".1.flv", 'w')
     fp.write(data)
     fp.close()
 
-    youtube = Youtube('http://youtu.be/mV6cvBorTfg')
-    print youtube.getVideoId()
-    data = youtube.downloadVideo()
-    fp = open(youtube.getVideoId() + ".2.flv", 'w')
-    fp.write(data)
-    fp.close()
-
-    youtube = Youtube('mV6cvBorTfg')
-    print youtube.getVideoId()
-    data = youtube.downloadVideo()
-    fp = open(youtube.getVideoId() + ".3.flv", 'w')
-    fp.write(data)
-    fp.close()
-
-#from JarvisPy.crawler.youtube import Youtube
-#youtube = Youtube('http://www.youtube.com/watch?v=mV6cvBorTfg')
-#video = youtube.downloadVideo()
+#from JarvisPy.crawler.tvpot import Tvpot
+#tvpot = Tvpot('http://tvpot.daum.net/v/v829dp9tL9w11tLfwWwmWyo')
+#video = tvpot.downloadVideo()
 
 
