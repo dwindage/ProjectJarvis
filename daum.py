@@ -1,5 +1,8 @@
 import sys
-from JarvisPy.crawler.tvpot import Tvpot
+import os
+
+sys.path.append( os.path.dirname(os.path.abspath(__file__)) + '/JarvisPy/' )
+from crawler.tvpot import Tvpot
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
@@ -9,10 +12,10 @@ if __name__ == '__main__':
     youtube = Tvpot(sys.argv[1])
     video = youtube.downloadVideo()
 
-	if len(video) > 0:
-		fp = open('/home/pi/videos/others/' + youtube.getVideoId() + ".mp4", 'w')
-		fp.write(video)
-		fp.close()
+    if len(video) > 0:
+        fp = open('/storage/downloads/' + youtube.getVideoId() + ".mp4", 'w')
+        fp.write(video)
+        fp.close()
 
     print 'done.'
 

@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
-Python Cralwer Module
-'''
+__all__=["tvpoy", "youtube"]
+
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8") #@UndefinedVariable
+
+from tvpot import Tvpot
+from youtube import Youtube
 
