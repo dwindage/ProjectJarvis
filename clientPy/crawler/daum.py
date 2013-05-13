@@ -1,7 +1,7 @@
 import sys
 import os
 
-sys.path.append( os.path.dirname(os.path.abspath(__file__)) + '/../JarvisPy/' )
+sys.path.append( os.path.dirname(os.path.abspath(__file__)) + '/../../JarvisPy/' )
 from crawler.tvpot import Tvpot
 
 if __name__ == '__main__':

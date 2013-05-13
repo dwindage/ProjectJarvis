@@ -1,11 +1,11 @@
 #!/bin/sh
 PYTHON_EXECUTE='python'
 
-BASE_PATH=`pwd`/../
+BASE_PATH=`pwd`/
 EXECUTE_FILE=listener.py
 PORT=2901
-LOG_FILE=$BASE_PATH/logs/log.stdout
-WORKING_EXECUTE=$BASE_PATH/script/$EXECUTE_FILE
+LOG_FILE=$BASE_PATH/log.stdout
+WORKING_EXECUTE=$BASE_PATH/$EXECUTE_FILE
 WORKING_HOME=`dirname $WORKING_EXECUTE`
 cd $WORKING_HOME
 
@@ -19,7 +19,7 @@ case $1 in
 		PID=`ps x | grep $EXECUTE_FILE | grep -v grep | awk '{print $1}'`
 		if [ $PID ]; then
 			kill -15 $PID
-			if [ $? == 0 ]; then
+			if [ $? -eq 0 ]; then
 				echo "listener is runiing with pid $PID"
 				echo "kill and restart process"
 			fi
@@ -34,11 +34,11 @@ case $1 in
 		PID=`ps x | grep $EXECUTE_FILE | grep -v grep | awk '{print $1}'`
 		if [ $PID ]; then
 			kill $PID
-			if [ $? == 0 ]; then
+			if [ $? -eq 0 ]; then
 				STARTED=1
 			fi
 		fi
-		if [ $STARTED == 0 ]; then
+		if [ $STARTED -eq 0 ]; then
 			echo "listener is not running"
 			exit 1
 		fi

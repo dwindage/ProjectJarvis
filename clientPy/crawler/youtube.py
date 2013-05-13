@@ -1,7 +1,7 @@
 import os
 import sys
 
-sys.path.append( os.path.dirname(os.path.abspath(__file__)) + '/../JarvisPy/' )
+sys.path.append( os.path.dirname(os.path.abspath(__file__)) + '/../../JarvisPy/' )
 from crawler.youtube import Youtube
 
 if __name__ == '__main__':

@@ -7,17 +7,27 @@ import time, uuid
 import logging
 from string import Template
 
+#sys.path.append( os.path.dirname(os.path.abspath(__file__)) + '/../../../JarvisPy/' )
+module_path = os.path.dirname(
+		os.path.dirname(
+			os.path.dirname(
+				os.path.dirname( os.path.abspath(__file__) )
+				)
+			)
+		) + '/JarvisPy/'
+sys.path.append( module_path )
+
 import twisted
 from twisted.web import server, resource, http
 from twisted.internet import reactor, threads, defer
 
 PROJECT_NAME = 'SAMPLE'
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-HTML_FRAME_TEMPLATE = BASE_PATH + 'template/frame.html'
-HTML_DATA_TEMPLATE = BASE_PATH + 'template/data.html'
-HTML_QUERY_TEMPLATE = BASE_PATH + 'template/query.html'
+HTML_FRAME_TEMPLATE = BASE_PATH + '/template/frame.html'
+HTML_DATA_TEMPLATE = BASE_PATH + '/template/data.html'
+HTML_QUERY_TEMPLATE = BASE_PATH + '/template/query.html'
 
-UPLAOD_FILE_PATH = BASE_PATH + 'upload/'
+UPLAOD_FILE_PATH = BASE_PATH + '/upload/'
 UPLOAD_FILE_URL = 'HTTP_ALIAS_PTH/'
 
 def getReqArg(args, key, default=''):
