@@ -22,7 +22,7 @@ __version__ = '1.1-devel'
 import urllib2
 
 url = 'http://derik-wa.appspot.com/walpha'
-data = 'content=who are you?'
+data = 'content=where is korea'
 
 result = urllib2.urlopen(url, data)
 jsonr = result.read()

@@ -4,6 +4,7 @@
 
 import os, sys, socket 
 import time, uuid
+import urllib, urllib2
 import logging
 from string import Template
 
@@ -14,14 +15,14 @@ module_path = os.path.dirname(
                 )
             )
         ) + '/JarvisPy'
-print module_path
 sys.path.append( module_path )
 
 import twisted
 from twisted.web import server, resource, http
 from twisted.internet import reactor, threads, defer
+import simplejson as json
 
-PROJECT_NAME = 'SAMPLE'
+PROJECT_NAME = 'Jarvis'
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 HTML_FRAME_TEMPLATE = BASE_PATH + '/template/frame.html'
 HTML_DATA_TEMPLATE = BASE_PATH + '/template/data.html'
@@ -32,6 +33,18 @@ queryTemplate = Template(open(HTML_QUERY_TEMPLATE).read())
 
 UPLAOD_FILE_PATH = BASE_PATH + '/upload/'
 UPLOAD_FILE_URL = 'HTTP_ALIAS_PTH/'
+
+#Wolfram|Alpha back door : urllib2.urlopen(API, "content=query").read()
+WOLFRAM_ALPHA_API = 'http://derik-wa.appspot.com/walpha'
+def callWolframAlpha(query):
+    try:
+        responseString = urllib2.urlopen( WOLFRAM_ALPHA_API, 'content='+query.strip() ).read()
+        jsonr = eval(responseString);
+        result = [x for x in jsonr if x[0] == 'pod']
+    except Exception, e:
+        print '[ERRO]', '[callWolframAlpha]', str(e)
+        result = []
+    return result
 
 def getReqArg(args, key, default=''):
     value = default
@@ -61,6 +74,7 @@ def search(req):
     try:
         args = req.args
         query = getReqArg(args, "q", "")
+        query = urllib.unquote(query)
         filestream = getReqArg(args, "f", "")
 
         # if file uploaed
@@ -82,33 +96,51 @@ def search(req):
             
 #        queryTemplate = Template(open(HTML_QUERY_TEMPLATE).read())
         queryBindingData = {'QUERY':query, 'DESCRIPTION':''}
-        query = queryTemplate.substitute(queryBindingData)
+        queryResult = queryTemplate.substitute(queryBindingData)
 
 #        dataTemplate = Template(open(HTML_DATA_TEMPLATE).read())
         data = ''
         if len(query) > 1: # is valid query
             # call search engine
-            # ...
-
-            # result
-            resultList = [
-                {'image':'http://10.33.37.185/flickr/Starbucks/7851954064_7299785025_b.jpg'},
-                {'image':'http://10.33.37.185/flickr/Starbucks/7560466908_2be71fa4ce_b.jpg'},
-                {'image':'http://10.33.37.185/flickr/Starbucks/7875493092_45e0a116e6_b.jpg'},
-                {'image':'http://10.33.37.185/flickr/Starbucks/7910756016_2f58993ab1_b.jpg'},
-                {'image':'http://10.33.37.185/flickr/Starbucks/7872406120_7073fdd596_b.jpg'},
-                {'image':'http://10.33.37.185/flickr/Starbucks/7822293938_2f0863ee1a_b.jpg'},
-                ]
+            resultList = []
+            for i in range(3):
+                jsonr = callWolframAlpha(query)
+                if len(jsonr) > 0:
+                    resultList = jsonr
+                    break;
 
             count = len(resultList)
             for idx, result in enumerate(resultList):
-                dataBindingData = {'TITLE':str(idx), 'DATA':result['image']}
+                title = [x for x in result if x[0] == 'title'][0][1]
+                sub = [x for x in result if x[0] == 'subpod']
+
+                plaintext = ''
+                imageList = []
+                for pod in sub:
+                    plaintext_temp = [x for x in pod if x[0] == 'plaintext']
+                    image_temp = [x for x in pod if x[0] == 'img']
+                    if len(plaintext_temp) > 0:
+                        if len(plaintext_temp[0]) == 2:
+                            plaintext = plaintext_temp[0][1]
+                    if len(image_temp) > 0:
+                        if len(image_temp[0]) >= 2:
+                            imageList.append(image_temp[0][1][1])
+
+                resultHtml = ''
+                if len(plaintext) > 1:
+                    plaintext = plaintext.replace('My name is Wolfram|Alpha.', 'Jarvis')
+                    resultHtml += plaintext
+                else:
+                    for image in imageList:
+                        resultHtml += '<img src="' + image + '"/>'
+
+                dataBindingData = {'TITLE':title, 'DATA':resultHtml}
                 data += dataTemplate.substitute(dataBindingData)
             if count == 0:
                 data = '<div class="alert"><strong>Warning!</strong> No Results!!</div>'
 
 #        frameTemplate = Template(open(HTML_FRAME_TEMPLATE).read())
-        frameBindingData = {'PROJECT_NAME':PROJECT_NAME, 'QUERY':query, 'BODY':data}
+        frameBindingData = {'PROJECT_NAME':PROJECT_NAME, 'QUERY':queryResult, 'BODY':data}
         resultHtml = frameTemplate.substitute(frameBindingData)
 
         req.setHeader('Content-type', 'text/html')
