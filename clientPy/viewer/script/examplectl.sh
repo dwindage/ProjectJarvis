@@ -3,7 +3,7 @@ PYTHON_EXECUTE='python'
 
 BASE_PATH=`pwd`/
 EXECUTE_FILE=listener.py
-PORT=2901
+PORT=10000
 LOG_FILE=$BASE_PATH/log.stdout
 WORKING_EXECUTE=$BASE_PATH/$EXECUTE_FILE
 WORKING_HOME=`dirname $WORKING_EXECUTE`
@@ -25,7 +25,7 @@ case $1 in
 			fi
 		fi
 		echo "======================================" >> $LOG_FILE
-		$PYTHON_EXECUTE $WORKING_EXECUTE $PORT >> $LOG_FILE &
+		$PYTHON_EXECUTE $WORKING_EXECUTE $PORT >> $LOG_FILE 2>> $LOG_FILE&
 		PID=$!
 		echo "listener started with pid $PID"
 		;;

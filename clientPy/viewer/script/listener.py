@@ -7,14 +7,14 @@ import time, uuid
 import logging
 from string import Template
 
-#sys.path.append( os.path.dirname(os.path.abspath(__file__)) + '/../../../JarvisPy/' )
 module_path = os.path.dirname(
-		os.path.dirname(
-			os.path.dirname(
-				os.path.dirname( os.path.abspath(__file__) )
-				)
-			)
-		) + '/JarvisPy/'
+        os.path.dirname(
+            os.path.dirname(
+                os.path.dirname( os.path.abspath(__file__) )
+                )
+            )
+        ) + '/JarvisPy'
+print module_path
 sys.path.append( module_path )
 
 import twisted
@@ -26,6 +26,9 @@ BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 HTML_FRAME_TEMPLATE = BASE_PATH + '/template/frame.html'
 HTML_DATA_TEMPLATE = BASE_PATH + '/template/data.html'
 HTML_QUERY_TEMPLATE = BASE_PATH + '/template/query.html'
+frameTemplate = Template(open(HTML_FRAME_TEMPLATE).read())
+dataTemplate = Template(open(HTML_DATA_TEMPLATE).read())
+queryTemplate = Template(open(HTML_QUERY_TEMPLATE).read())
 
 UPLAOD_FILE_PATH = BASE_PATH + '/upload/'
 UPLOAD_FILE_URL = 'HTTP_ALIAS_PTH/'
@@ -41,11 +44,11 @@ def getReqArg(args, key, default=''):
     return value
 
 def index(req):
-    queryTemplate = Template(open(HTML_QUERY_TEMPLATE).read())
-    queryBindingData = {'QUERY':'', 'IMAGE':'', 'DESCRIPTION':''}
+#    queryTemplate = Template(open(HTML_QUERY_TEMPLATE).read())
+    queryBindingData = {'QUERY':'', 'DESCRIPTION':''}
     query = queryTemplate.substitute(queryBindingData)
 
-    frameTemplate = Template(open(HTML_FRAME_TEMPLATE).read())
+#    frameTemplate = Template(open(HTML_FRAME_TEMPLATE).read())
     frameBindingData = {'PROJECT_NAME':PROJECT_NAME, 'QUERY':query, 'BODY':''}
     resultHtml = frameTemplate.substitute(frameBindingData)
 
@@ -57,14 +60,13 @@ def index(req):
 def search(req):
     try:
         args = req.args
-        imageUrl = getReqArg(args, "q", "")
+        query = getReqArg(args, "q", "")
         filestream = getReqArg(args, "f", "")
-        queryImage = imageUrl
 
         # if file uploaed
-        if len(imageUrl) == 0 and len(filestream) > 0:
+        if len(query) == 0 and len(filestream) > 0:
             # save file
-            filename = '%s_%s.jpg' % (time.strftime("%H-%M-%S", time.localtime()), uuid.uuid4())
+            filename = '%s_%s.jpg' % (time.strftime("%Y-%M-%D", time.localtime()), uuid.uuid4())
             filepath = UPLAOD_FILE_PATH 
             try:
                 if not os.path.exists(filepath):
@@ -74,17 +76,17 @@ def search(req):
                 of.close()
 
                 fileurl = UPLOAD_FILE_URL + filename
-                queryImage = fileurl
+                query = fileurl
             except Exception, e:
                 print '[ERRO]', '[upload]', str(e)
             
-        queryTemplate = Template(open(HTML_QUERY_TEMPLATE).read())
-        queryBindingData = {'QUERY':queryImage, 'IMAGE':queryImage, 'DESCRIPTION':''}
+#        queryTemplate = Template(open(HTML_QUERY_TEMPLATE).read())
+        queryBindingData = {'QUERY':query, 'DESCRIPTION':''}
         query = queryTemplate.substitute(queryBindingData)
 
-        dataTemplate = Template(open(HTML_DATA_TEMPLATE).read())
+#        dataTemplate = Template(open(HTML_DATA_TEMPLATE).read())
         data = ''
-        if len(queryImage) > 1: # is valid query
+        if len(query) > 1: # is valid query
             # call search engine
             # ...
 
@@ -98,13 +100,14 @@ def search(req):
                 {'image':'http://10.33.37.185/flickr/Starbucks/7822293938_2f0863ee1a_b.jpg'},
                 ]
 
+            count = len(resultList)
             for idx, result in enumerate(resultList):
-                dataBindingData = {'RANK':count, 'SCORE':0, 'IMAGE':result['image']}
+                dataBindingData = {'TITLE':str(idx), 'DATA':result['image']}
                 data += dataTemplate.substitute(dataBindingData)
             if count == 0:
                 data = '<div class="alert"><strong>Warning!</strong> No Results!!</div>'
 
-        frameTemplate = Template(open(HTML_FRAME_TEMPLATE).read())
+#        frameTemplate = Template(open(HTML_FRAME_TEMPLATE).read())
         frameBindingData = {'PROJECT_NAME':PROJECT_NAME, 'QUERY':query, 'BODY':data}
         resultHtml = frameTemplate.substitute(frameBindingData)
 
@@ -143,6 +146,7 @@ class MyHttpFactory(http.HTTPFactory):
     protocol = MyHttp
 
 if __name__ == '__main__':
+    print module_path
     if len(sys.argv) != 2:
         print sys.stderr, 'Usage : ' + sys.argv[0] + ' PORT'
         exit()
