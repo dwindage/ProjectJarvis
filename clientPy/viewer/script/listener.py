@@ -127,12 +127,12 @@ def search(req):
                             imageList.append(image_temp[0][1][1])
 
                 resultHtml = ''
-                if len(plaintext) > 1:
-                    plaintext = plaintext.replace('My name is Wolfram|Alpha.', 'Jarvis')
+                if 'Wolfram|Alpha' in plaintext:
+                    plaintext = plaintext.replace('Wolfram|Alpha', 'Jarvis')
                     resultHtml += plaintext
                 else:
                     for image in imageList:
-                        resultHtml += '<img src="' + image + '"/>'
+                        resultHtml += '<img src="' + image + '"/><br/>'
 
                 dataBindingData = {'TITLE':title, 'DATA':resultHtml}
                 data += dataTemplate.substitute(dataBindingData)
