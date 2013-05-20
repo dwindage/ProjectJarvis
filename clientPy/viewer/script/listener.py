@@ -109,6 +109,7 @@ def search(req):
                     resultList = jsonr
                     break;
 
+            foundResponse = False
             count = len(resultList)
             for idx, result in enumerate(resultList):
                 title = [x for x in result if x[0] == 'title'][0][1]
@@ -126,9 +127,14 @@ def search(req):
                         if len(image_temp[0]) >= 2:
                             imageList.append(image_temp[0][1][1])
 
+                plaintext = plaintext.replace('Wolfram|Alpha', 'Jarvis')
+
                 resultHtml = ''
-                if 'Wolfram|Alpha' in plaintext:
-                    plaintext = plaintext.replace('Wolfram|Alpha', 'Jarvis')
+                if 'Response' in title and len(plaintext) > 0:
+#                    resultHtml += '<div><embed height="50" width="300" src="http://translate.google.com/translate_tts?tl=en&q=' + urllib.quote(plaintext) + '"/></div>'
+                    resultHtml += '<div><audio controls autoplay><source src="http://translate.google.com/translate_tts?tl=en&q=' + urllib.quote(plaintext) + '"/></audio></div>'
+                    foundResponse = True
+                if 'Jarvis' in plaintext:
                     resultHtml += plaintext
                 else:
                     for image in imageList:
@@ -136,8 +142,11 @@ def search(req):
 
                 dataBindingData = {'TITLE':title, 'DATA':resultHtml}
                 data += dataTemplate.substitute(dataBindingData)
+            if foundResponse == False:
+                query = urllib.quote(query)
+                data += dataTemplate.substitute({'TITLE':'sound', 'DATA':'<div><audio controls autoplay><source src="http://translate.google.com/translate_tts?tl=en&q=' + query + '%2C%20detective%2C%20is%20the%20right%20question.%20check%20results."/></audio></div>'})
             if count == 0:
-                data = '<div class="alert"><strong>Warning!</strong> No Results!!</div>'
+                data = dataTemplate.substitute({'TITLE':'Warning', 'DATA':'<div><audio controls autoplay><source src="http://translate.google.com/translate_tts?tl=en&q=I%27m%20sorry.%20My%20responses%20are%20limited.%20You%20should%20ask%20the%20right%20questions!!"/></audio></div>'})
 
 #        frameTemplate = Template(open(HTML_FRAME_TEMPLATE).read())
         frameBindingData = {'PROJECT_NAME':PROJECT_NAME, 'QUERY':queryResult, 'BODY':data}
@@ -162,9 +171,11 @@ class HandleRequest(http.Request):
             print '[INFO]', '[REQUEST]',
             print self.getClientIP() + ' ' + self.method + ' ' + self.uri
             print '[INFO]', '[REQUEST]', '[PARAM] ' + str(self.args)[:200]
+            sys.stdout.flush()
 
             handler = self.pageHandlers[self.path]
             d = threads.deferToThread(handler, self)
+            sys.stdout.flush()
         else:
             self.setResponseCode(http.NOT_FOUND)
             self.setHeader('Content-type', 'text/html')
@@ -189,6 +200,7 @@ if __name__ == '__main__':
     print '[INFO]', '[DAEMON]', ':::::::::::::::::::::::::::::::::::'
     print '[INFO]', '[DAEMON]', 'START listener - ' + str(localIP) + ':' + str(port)
     print '[INFO]', '[DAEMON]', ':::::::::::::::::::::::::::::::::::'
+    sys.stdout.flush()
 
     reactor.suggestThreadPoolSize(16)
     reactor.listenTCP(port, MyHttpFactory())
@@ -197,4 +209,5 @@ if __name__ == '__main__':
     print '[INFO]', '[DAEMON]', ':::::::::::::::::::::::::::::::::::'
     print '[INFO]', '[DAEMOM]', 'STOP listener'
     print '[INFO]', '[DAEMON]', ':::::::::::::::::::::::::::::::::::'
- 
+    sys.stdout.flush()
+
