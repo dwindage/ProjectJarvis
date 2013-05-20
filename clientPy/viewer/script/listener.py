@@ -38,7 +38,7 @@ UPLOAD_FILE_URL = 'HTTP_ALIAS_PTH/'
 WOLFRAM_ALPHA_API = 'http://derik-wa.appspot.com/walpha'
 def callWolframAlpha(query):
     try:
-        responseString = urllib2.urlopen( WOLFRAM_ALPHA_API, 'content='+query.strip() ).read()
+        responseString = urllib2.urlopen( WOLFRAM_ALPHA_API, 'content='+query.strip(), timeout=3).read()
         jsonr = eval(responseString);
         result = [x for x in jsonr if x[0] == 'pod']
     except Exception, e:
@@ -103,7 +103,7 @@ def search(req):
         if len(query) > 1: # is valid query
             # call search engine
             resultList = []
-            for i in range(3):
+            for i in range(2):
                 jsonr = callWolframAlpha(query)
                 if len(jsonr) > 0:
                     resultList = jsonr
