@@ -110,6 +110,7 @@ def search(req):
                     break;
 
             foundResponse = False
+            inputInterpretation = urllib.quote(query)
             count = len(resultList)
             for idx, result in enumerate(resultList):
                 title = [x for x in result if x[0] == 'title'][0][1]
@@ -130,6 +131,8 @@ def search(req):
                 plaintext = plaintext.replace('Wolfram|Alpha', 'Jarvis')
 
                 resultHtml = ''
+                if 'Input interpretation' in title and len(plaintext) > 0:
+                    inputInterpretation = urllib.quote(plaintext)
                 if 'Response' in title and len(plaintext) > 0:
 #                    resultHtml += '<div><embed height="50" width="300" src="http://translate.google.com/translate_tts?tl=en&q=' + urllib.quote(plaintext) + '"/></div>'
                     resultHtml += '<div><audio controls autoplay><source src="http://translate.google.com/translate_tts?tl=en&q=' + urllib.quote(plaintext) + '"/></audio></div>'
@@ -143,8 +146,7 @@ def search(req):
                 dataBindingData = {'TITLE':title, 'DATA':resultHtml}
                 data += dataTemplate.substitute(dataBindingData)
             if foundResponse == False:
-                query = urllib.quote(query)
-                data += dataTemplate.substitute({'TITLE':'sound', 'DATA':'<div><audio controls autoplay><source src="http://translate.google.com/translate_tts?tl=en&q=' + query + '%2C%20detective%2C%20is%20the%20right%20question.%20check%20results."/></audio></div>'})
+                data += dataTemplate.substitute({'TITLE':'sound', 'DATA':'<div><audio controls autoplay><source src="http://translate.google.com/translate_tts?tl=en&q=' + inputInterpretation + '%2C%20detective%2C%20is%20the%20right%20question.%20check%20results."/></audio></div>'})
             if count == 0:
                 data = dataTemplate.substitute({'TITLE':'Warning', 'DATA':'<div><audio controls autoplay><source src="http://translate.google.com/translate_tts?tl=en&q=I%27m%20sorry.%20My%20responses%20are%20limited.%20You%20should%20ask%20the%20right%20questions!!"/></audio></div>'})
 
